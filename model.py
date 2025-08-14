@@ -5,6 +5,8 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics import accuracy_score
 
 
+
+
 class SimpleEmailData:
     """Generates fake emails with evolving spam tactics"""
 
