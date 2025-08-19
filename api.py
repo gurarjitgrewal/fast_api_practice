@@ -4,8 +4,69 @@ from model import SimpleEmailData, DynamicSpamDetector
 import json
 from fastapi.responses import JSONResponse
 from typing import Annotated,Literal,Optional
+import os
+import sys
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.openapi.utils import get_openapi
+from fastapi.routing import APIRoute
+
+
 
 app = FastAPI(title="Dynamic Spam Detector API")
+
+from config.settings import Settings
+ 
+settings = Settings()
+
+# Try to import common module from local directory first
+try:
+    from common.openapi_utils import (
+        create_custom_openapi,
+        get_default_security_schemes,
+        get_default_parameters
+    )
+except ModuleNotFoundError:
+    # If not found locally, try to find it in the parent directory
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+    from common.openapi_utils import (
+        create_custom_openapi,
+        get_default_security_schemes,
+        get_default_parameters
+)
+ 
+# Define the endpoints you want to exclude
+excluded_paths = [
+]  
+ 
+# Apply custom OpenAPI schema using the common utility
+app.openapi = create_custom_openapi(
+    app=app,
+    server_url=settings.API_SERVER_URL,
+    server_description=settings.API_SERVER_DESCRIPTION,
+    excluded_paths=excluded_paths,
+    security_schemes=get_default_security_schemes(),
+    custom_parameters=get_default_parameters()
+)
+ 
+ 
+#FastAPIInstrumentor.instrument_app(app)
+ 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["*"]
+)
+ 
+#app.include_router(base_router, prefix="/api")
+#app.include_router(meta_router, prefix="/api")
+#app.include_router(registry_router, prefix="/api")
+#app.include_router(session_router, prefix="/api")
 
 # Create instances
 data_gen = SimpleEmailData()
